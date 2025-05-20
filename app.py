@@ -18,6 +18,12 @@ VOCAL_TAGS = {
     "Gospel music", "Lullaby", "Groan", "Grunt"
 }
 
+# Definitive speech tags that guarantee vocal classification
+DEFINITIVE_SPEECH_TAGS = {
+    "Speech", "Male speech, man speaking", "Female speech, woman speaking",
+    "Child speech, kid speaking", "Conversation", "Narration, monologue"
+}
+
 INSTRUMENTAL_TAGS = {
     "Piano", "Electric piano", "Keyboard (musical)", "Musical instrument",
     "Synthesizer", "Organ", "New-age music", "Electronic organ", 
@@ -47,6 +53,13 @@ INSTRUMENTAL_TAGS = {
 }
 
 def classify_audio(top_tags):
+    # Check for definitive speech tags first - if any are present, it's definitely vocal
+    has_definitive_speech = any(tag in DEFINITIVE_SPEECH_TAGS for tag in top_tags)
+    
+    if has_definitive_speech:
+        return "Vocal Audio"
+    
+    # Regular classification logic as fallback
     has_vocal = any(tag in VOCAL_TAGS for tag in top_tags)
     has_instrumental = any(tag in INSTRUMENTAL_TAGS for tag in top_tags)
 
@@ -108,6 +121,19 @@ def process_audio(audio_path, model_size="small"):
     print("\nTop Tags (appeared more than once):")
     for tag in top_tags:
         print(f"- {tag}")
+
+    # Check for definitive speech tags (even if they only appear once)
+    all_detected_tags = list(all_tags_set)
+    speech_tags = [tag for tag in all_detected_tags if tag in DEFINITIVE_SPEECH_TAGS]
+    
+    if speech_tags:
+        #print("\nDefinitive Speech Tags Detected:")
+        #for tag in speech_tags:
+            #print(f"- {tag}")
+        # Add speech tags to top_tags to ensure they're considered in classification
+        for tag in speech_tags:
+            if tag not in top_tags:
+                top_tags.append(tag)
 
     classification = classify_audio(top_tags)
     print(f"\nClassification: {classification}")
